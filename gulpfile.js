@@ -57,14 +57,17 @@ gulp.task('sass', function() {
 gulp.task('js', function() {
     return gulp.src(['node_modules/bootstrap/dist/js/bootstrap.min.js', 'node_modules/jquery/dist/jquery.min.js', 'node_modules/tether/dist/js/tether.min.js'])
         .pipe(gulp.dest('app/js'))
-        .pipe(browserSync.stream());
+        .pipe(browserSync.reload({ // Reloading with Browser Sync
+            stream: true
+        }));
 });
 
 // Watchers
-gulp.task('watch', function() {
-    gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', 'app/scss/**/*.scss'] ['sass']);
-    gulp.watch('app/*.html', browserSync.reload);
-    gulp.watch('app/js/**/*.js', browserSync.reload);
+gulp.task('watch', ['browserSync'], function() {
+    gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', 'app/scss/**/*.scss'], ['sass']);
+    // gulp.watch('custom.js', ['js']);
+    gulp.watch('app/*.html', [browserSync.reload]);
+    gulp.watch('app/js/**/*.js', [browserSync.reload]);
 })
 
 // Optimization Tasks
@@ -111,7 +114,7 @@ gulp.task('clean:dist', function() {
 // ---------------
 
 gulp.task('default', function(callback) {
-    runSequence(['js', 'sass', 'browserSync'], 'watch',
+    runSequence(['js', 'sass'], 'watch',
         callback
     )
 })
