@@ -11,6 +11,8 @@ var del = require('del');
 var runSequence = require('run-sequence');
 var uncss = require('gulp-uncss');
 var  autoprefixer = require('gulp-autoprefixer');
+var csslint = require('gulp-csslint');
+var htmlhint = require("gulp-htmlhint");
 
 var autoprefixerOptions = {
     browsers: ['last 2 versions', '> 5%', 'Firefox ESR']
@@ -26,7 +28,7 @@ gulp.task('browserSync', function() {
             baseDir: 'app'
         }
     })
-})
+});
 
 gulp.task('sass', function() {
     return gulp.src(['node_modules/bootstrap/scss/bootstrap.scss', 'app/scss/**/*.scss']) // Gets all files ending with .scss in app/scss and children dirs
@@ -46,29 +48,30 @@ gulp.task('sass', function() {
             ]
         }))
         .pipe(autoprefixer(autoprefixerOptions)) // auto adds vendor prefixes
+        .pipe(csslint())
+        .pipe(csslint.formatter())
         .pipe(gulp.dest('app/css')) // Outputs it in the css folder
         .pipe(browserSync.reload({ // Reloading with Browser Sync
             stream: true
         }));
-})
+});
 
 
 
 gulp.task('js', function() {
     return gulp.src(['node_modules/bootstrap/dist/js/bootstrap.min.js', 'node_modules/jquery/dist/jquery.min.js', 'node_modules/tether/dist/js/tether.min.js'])
         .pipe(gulp.dest('app/js'))
-        .pipe(browserSync.reload({ // Reloading with Browser Sync
-            stream: true
-        }));
+        // .pipe(browserSync.reload({ // Reloading with Browser Sync
+        //     stream: true
+        // }));
 });
 
 // Watchers
 gulp.task('watch', ['browserSync'], function() {
     gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', 'app/scss/**/*.scss'], ['sass']);
-    // gulp.watch('custom.js', ['js']);
-    gulp.watch('app/*.html', [browserSync.reload]);
-    gulp.watch('app/js/**/*.js', [browserSync.reload]);
-})
+    gulp.watch('app/*.html', browserSync.reload);
+    gulp.watch('app/js/**/*.js', browserSync.reload);
+});
 
 // Optimization Tasks
 // ------------------
@@ -97,14 +100,14 @@ gulp.task('images', function() {
 gulp.task('fonts', function() {
     return gulp.src('app/fonts/**/*')
         .pipe(gulp.dest('dist/fonts'))
-})
+});
 
 // Cleaning
 gulp.task('clean', function() {
     return del.sync('dist').then(function(cb) {
         return cache.clearAll(cb);
     });
-})
+});
 
 gulp.task('clean:dist', function() {
     return del.sync(['dist/**/*', '!dist/images', '!dist/images/**/*']);
@@ -117,7 +120,7 @@ gulp.task('default', function(callback) {
     runSequence(['js', 'sass'], 'watch',
         callback
     )
-})
+});
 
 gulp.task('build', function(callback) {
     runSequence(
@@ -127,4 +130,4 @@ gulp.task('build', function(callback) {
         ['useref', 'images', 'fonts'],
         callback
     )
-})
+});
