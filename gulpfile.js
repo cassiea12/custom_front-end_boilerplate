@@ -48,7 +48,7 @@ gulp.task('sass', function() {
             ]
         }))
         .pipe(autoprefixer(autoprefixerOptions)) // auto adds vendor prefixes
-        .pipe(csslint())
+        .pipe(csslint()) // lints css
         .pipe(csslint.formatter())
         .pipe(gulp.dest('app/css')) // Outputs it in the css folder
         .pipe(browserSync.reload({ // Reloading with Browser Sync
@@ -56,6 +56,14 @@ gulp.task('sass', function() {
         }));
 });
 
+gulp.task('html', function() {
+    return gulp.src('app/*.html')
+        .pipe(htmlhint()) //lints html
+        .pipe(htmlhint.reporter())
+        .pipe(browserSync.reload({ // Reloading with Browser Sync
+            stream: true
+        }));
+});
 
 
 gulp.task('js', function() {
@@ -69,8 +77,14 @@ gulp.task('js', function() {
 // Watchers
 gulp.task('watch', ['browserSync'], function() {
     gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', 'app/scss/**/*.scss'], ['sass']);
-    gulp.watch('app/*.html', browserSync.reload);
+    gulp.watch('app/*.html', ['html']);
     gulp.watch('app/js/**/*.js', browserSync.reload);
+});
+
+gulp.task('default', function(callback) {
+    runSequence(['html','js', 'sass'], 'watch',
+        callback
+    )
 });
 
 // Optimization Tasks
@@ -81,8 +95,8 @@ gulp.task('useref', function() {
 
     return gulp.src('app/*.html')
         .pipe(useref())
-        .pipe(gulpIf('*.js', uglify()))
-        .pipe(gulpIf('*.css', cssnano()))
+        .pipe(gulpIf('*.js', uglify())) //minification
+        .pipe(gulpIf('*.css', cssnano())) // minification
         .pipe(gulp.dest('dist'));
 });
 
@@ -98,7 +112,7 @@ gulp.task('images', function() {
 
 // Copying fonts
 gulp.task('fonts', function() {
-    return gulp.src('app/fonts/**/*')
+    return gulp.src(['app/fonts/**/*','node_modules/font-awesome/fonts/*'])
         .pipe(gulp.dest('dist/fonts'))
 });
 
@@ -115,12 +129,6 @@ gulp.task('clean:dist', function() {
 
 // Build Sequences
 // ---------------
-
-gulp.task('default', function(callback) {
-    runSequence(['js', 'sass'], 'watch',
-        callback
-    )
-});
 
 gulp.task('build', function(callback) {
     runSequence(
