@@ -12,7 +12,8 @@ var runSequence = require('run-sequence');
 var uncss = require('gulp-uncss');
 var  autoprefixer = require('gulp-autoprefixer');
 var csslint = require('gulp-csslint');
-var htmlhint = require("gulp-htmlhint");
+var htmlhint = require('gulp-htmlhint');
+var popperjs = require('popper.js');
 
 var autoprefixerOptions = {
     browsers: ['last 2 versions', '> 5%', 'Firefox ESR']
@@ -36,7 +37,7 @@ gulp.task('sass', function() {
         .pipe(uncss({ //removes unused css
             html: [
                 'app/index.html'
-                ],
+            ],
             ignore: [
                 /\.fade/,
                 /\.modal/,
@@ -67,18 +68,18 @@ gulp.task('html', function() {
 
 
 gulp.task('js', function() {
-    return gulp.src(['node_modules/bootstrap/dist/js/bootstrap.min.js', 'node_modules/jquery/dist/jquery.min.js', 'node_modules/tether/dist/js/tether.min.js'])
+    return gulp.src(['node_modules/bootstrap/dist/js/bootstrap.min.js', 'node_modules/jquery/dist/jquery.min.js', 'node_modules/tether/dist/js/tether.min.js','node_modules/popper.js/dist/umd/popper.js'])
         .pipe(gulp.dest('app/js'))
-        // .pipe(browserSync.reload({ // Reloading with Browser Sync
-        //     stream: true
-        // }));
+        .pipe(browserSync.reload({ // Reloading with Browser Sync
+            stream: true
+        }));
 });
 
 // Watchers
 gulp.task('watch', ['browserSync'], function() {
     gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', 'app/scss/**/*.scss'], ['sass']);
-    gulp.watch('app/*.html', ['html']);
-    gulp.watch('app/js/**/*.js', browserSync.reload);
+    gulp.watch('app/*.html', ['html' , 'sass']);
+    gulp.watch('app/js/custom.js', ['js']);
 });
 
 gulp.task('default', function(callback) {
@@ -116,6 +117,12 @@ gulp.task('fonts', function() {
         .pipe(gulp.dest('dist/fonts'))
 });
 
+// Copying pdfs
+gulp.task('pdf', function() {
+    return gulp.src(['app/pdf/**/*'])
+        .pipe(gulp.dest('dist/pdf'))
+});
+
 // Cleaning
 gulp.task('clean', function() {
     return del.sync('dist').then(function(cb) {
@@ -135,7 +142,7 @@ gulp.task('build', function(callback) {
         'clean:dist',
         'js',
         'sass',
-        ['useref', 'images', 'fonts'],
+        ['useref', 'images', 'fonts', 'pdf'],
         callback
     )
 });
